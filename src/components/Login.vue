@@ -2,7 +2,7 @@
   <div class="login_container">
     <div class="login_box">
       <div class="avatar_box">
-        <img src="../assets/logo.png" alt="" />
+        <img src="../assets/logo.png" alt />
       </div>
       <el-form
         ref="loginFormRef"
@@ -12,10 +12,7 @@
         class="login_form"
       >
         <el-form-item prop="username">
-          <el-input
-            v-model="loginForm.username"
-            prefix-icon="el-icon-search"
-          ></el-input>
+          <el-input v-model="loginForm.username" prefix-icon="el-icon-search" placeholder="请输入工号"></el-input>
         </el-form-item>
 
         <el-form-item prop="password">
@@ -23,11 +20,28 @@
             type="password"
             v-model="loginForm.password"
             prefix-icon="el-icon-search"
+            placeholder="请输入密码"
+            show-password
           ></el-input>
         </el-form-item>
 
+        <el-form-item>
+          <el-input
+            style="width:50%;margin-right:50px"
+            v-model="loginForm.testcode"
+            placeholder="请输入验证码"
+            :disabled="testCode.disable"
+            prop="tetscode"
+          ></el-input>
+          <el-button
+            type="primary"
+            @click="getCode"
+            :disabled="getCodeBtn.disabled"
+          >{{ getCodeBtn.text }}</el-button>
+        </el-form-item>
+
         <el-form-item class="btns">
-          <el-button type="primary" @click="login">登录</el-button>
+          <el-button type="primary" @click="login" :disabled="loginBtn.disable">登录</el-button>
           <el-button type="info" @click="resetLogin">重置</el-button>
         </el-form-item>
       </el-form>
@@ -40,21 +54,52 @@
 export default {
   data() {
     return {
+      testCode: {
+        disable: true,
+      },
+      loginBtn: {
+        disable: true,
+      },
+      timer: "",
       //表单对象
+      getCodeBtn: {
+        text: "点击获取验证码",
+        disabled: false,
+      },
       loginForm: {
         username: "",
-        password: ""
+        password: "",
+        testcode: "",
       },
       LoginFormRules: {
         username: [
           { required: true, message: "请输入用户名", trigger: "blur" },
-          { min: 3, max: 10, message: "长度在 3 到 10 个字符", trigger: "blur" }
+          {
+            min: 3,
+            max: 10,
+            message: "长度在 3 到 10 个字符",
+            trigger: "blur",
+          },
         ],
         password: [
           { required: true, message: "请输入密码", trigger: "blur" },
-          { min: 6, max: 15, message: "长度在 6 到 15 个字符", trigger: "blur" }
-        ]
-      }
+          {
+            min: 6,
+            max: 15,
+            message: "长度在 6 到 15 个字符",
+            trigger: "blur",
+          },
+        ],
+        tetscode: [
+          { required: true, message: "请输入验证码", trigger: "blur" },
+          {
+            min: 4,
+            max: 4,
+            message: "4位数字验证码",
+            trigger: "blur",
+          },
+        ],
+      },
     };
   },
   methods: {
@@ -63,18 +108,80 @@ export default {
       //   console.log(this);
       this.$refs.loginFormRef.resetFields();
     },
-    login() {
-      this.$refs.loginFormRef.validate(async valid => {
-        if (!valid) return;
-        const { data: res } = await this.$http.post(
-          "users/login",
-          this.loginForm
-        );
-        if (res.meta.status !== 200) return console.log("登录失败");
-        console.log("登录成功");
+    //获取验证码
+    getCode() {
+      this.$refs.loginFormRef.validateField(["username"], async (valid) => {
+        if (valid) return;
+        this.$http
+          .post("/apis/users/loginGetCode", {
+            username: this.loginForm.username,
+            password: this.loginForm.password,
+          })
+          .then((data) => {
+            console.log(data.data);
+            if (data.data.code == 400) {
+              this.open4();
+            } else {
+              this.open2();
+              this.testCode.disable = false;
+              this.loginBtn.disable = false;
+              console.log(data);
+            }
+          });
       });
-    }
-  }
+    },
+
+    //账号密码携带验证码登录
+    login() {
+      this.$refs.loginFormRef.validate(async (valid) => {
+        if (!valid) return;
+        this.$http.post("/apis/users/login", this.loginForm).then((data) => {
+          console.log(data.data);
+          console.log(data.data.data);
+          console.log(data.data.msg);
+          if (data.data.code == 400) {
+            console.log("账号密码错误");
+          } else if (data.data.code == 200 && data.data.msg !== "验证码错误") {
+            console.log("登录成功");
+            this.open1();
+            window.sessionStorage.setItem("token", data.data.token);
+            this.$router.push("/home");
+          } else {
+            console.log("验证码错误");
+            this.open5();
+          }
+        });
+      });
+    },
+
+    // 消息弹窗
+    open5() {
+      this.$message.error("验证码错误");
+    },
+    open4() {
+      this.$message.error("验证码发送失败，请检查用户名密码是否正确");
+    },
+    open2() {
+      this.$message.success("验证码发送发送成功，请查看手机");
+    },
+    open1() {
+      this.$message.success("登录成功");
+    },
+    //发送验证码倒计时
+    // setTime(obj, timeL) {
+    //   let countdown = 60;
+    //   if (countdown == 0) {
+    //     obj.disabled = false;
+    //     obj.text = "点击获取验证码";
+    //     countdown = 60; //60秒过后button上的文字初始化,计时器初始化;
+    //     return;
+    //   } else {
+    //     obj.disabled = true;
+    //     obj.text = "(" + countdown + "s)后重新发送";
+    //     countdown--;
+    //   }
+    // },
+  },
 };
 </script>
 
@@ -85,7 +192,7 @@ export default {
 }
 .login_box {
   width: 450px;
-  height: 300px;
+  height: 350px;
   background-color: #fff;
   border-radius: 3px;
   position: absolute;

@@ -8,9 +8,6 @@ import axios from 'axios'
 import './assets/css/global.css'
 Vue.config.productionTip = false
 
-
-//配置请求根路径
-axios.defaults.baseURL = '127.0.0.1:3000/'
 //把axios挂载到vue原型上
 Vue.prototype.$http = axios
 
