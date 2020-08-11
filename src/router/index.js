@@ -26,12 +26,12 @@ const router = new VueRouter({
 
 
 //挂载路由导航守卫
-router.beforeEach((to, from, next) => {
-  if (to.path === '/login') return next();
-  const tonkenStr = window.sessionStorage.getItem('token')
-  if (!tonkenStr) return next('/login')
-  next()
-})
+// router.beforeEach((to, from, next) => {
+//   if (to.path === '/login') return next();
+//   const tonkenStr = window.sessionStorage.getItem('token')
+//   if (!tonkenStr) return next('/login')
+//   next()
+// })
 
 
 
