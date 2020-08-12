@@ -12,7 +12,11 @@
         class="login_form"
       >
         <el-form-item prop="username">
-          <el-input v-model="loginForm.username" prefix-icon="el-icon-search" placeholder="请输入工号"></el-input>
+          <el-input
+            v-model="loginForm.username"
+            prefix-icon="el-icon-search"
+            placeholder="请输入工号"
+          ></el-input>
         </el-form-item>
 
         <el-form-item prop="password">
@@ -37,11 +41,14 @@
             type="primary"
             @click="getCode"
             :disabled="getCodeBtn.disabled"
-          >{{ getCodeBtn.text }}</el-button>
+            >{{ getCodeBtn.text }}</el-button
+          >
         </el-form-item>
 
         <el-form-item class="btns">
-          <el-button type="primary" @click="login" :disabled="loginBtn.disable">登录</el-button>
+          <el-button type="primary" @click="login" :disabled="loginBtn.disable"
+            >登录</el-button
+          >
           <el-button type="info" @click="resetLogin">重置</el-button>
         </el-form-item>
       </el-form>
@@ -55,118 +62,100 @@ export default {
   data() {
     return {
       testCode: {
-        disable: true,
+        disable: true
       },
       loginBtn: {
-        disable: true,
+        disable: true
       },
-      timer: "",
+      timer: '',
       //表单对象
       getCodeBtn: {
-        text: "点击获取验证码",
-        disabled: false,
+        text: '点击获取验证码',
+        disabled: false
       },
       loginForm: {
-        username: "",
-        password: "",
-        testcode: "",
+        username: '',
+        password: '',
+        testcode: ''
       },
       LoginFormRules: {
         username: [
-          { required: true, message: "请输入用户名", trigger: "blur" },
+          { required: true, message: '请输入用户名', trigger: 'blur' },
           {
             min: 3,
             max: 10,
-            message: "长度在 3 到 10 个字符",
-            trigger: "blur",
-          },
+            message: '长度在 3 到 10 个字符',
+            trigger: 'blur'
+          }
         ],
         password: [
-          { required: true, message: "请输入密码", trigger: "blur" },
+          { required: true, message: '请输入密码', trigger: 'blur' },
           {
             min: 6,
             max: 15,
-            message: "长度在 6 到 15 个字符",
-            trigger: "blur",
-          },
+            message: '长度在 6 到 15 个字符',
+            trigger: 'blur'
+          }
         ],
         tetscode: [
-          { required: true, message: "请输入验证码", trigger: "blur" },
+          { required: true, message: '请输入验证码', trigger: 'blur' },
           {
             min: 4,
             max: 4,
-            message: "4位数字验证码",
-            trigger: "blur",
-          },
-        ],
-      },
-    };
+            message: '4位数字验证码',
+            trigger: 'blur'
+          }
+        ]
+      }
+    }
   },
   methods: {
     // 点击重置按钮重置表单
     resetLogin() {
       //   console.log(this);
-      this.$refs.loginFormRef.resetFields();
+      this.$refs.loginFormRef.resetFields()
     },
     //获取验证码
     getCode() {
-      this.$refs.loginFormRef.validateField(["username"], async (valid) => {
-        if (valid) return;
+      this.$refs.loginFormRef.validateField(['username'], async valid => {
+        if (valid) return
         this.$http
-          .post("/apis/users/loginGetCode", {
+          .post('/apis/users/loginGetCode', {
             username: this.loginForm.username,
-            password: this.loginForm.password,
+            password: this.loginForm.password
           })
-          .then((data) => {
-            console.log(data.data);
-            if (data.data.code == 400) {
-              this.open4();
+          .then(data => {
+            let res = data.data
+            if (res.code == 400) {
+              this.$message.error(res.msg)
             } else {
-              this.open2();
-              this.testCode.disable = false;
-              this.loginBtn.disable = false;
-              console.log(data);
+              this.$message.success(res.msg)
+              this.testCode.disable = false
+              this.loginBtn.disable = false
+              console.log(data)
             }
-          });
-      });
+          })
+      })
     },
 
     //账号密码携带验证码登录
     login() {
-      this.$refs.loginFormRef.validate(async (valid) => {
-        if (!valid) return;
-        this.$http.post("/apis/users/login", this.loginForm).then((data) => {
-          console.log(data.data);
-          console.log(data.data.data);
-          console.log(data.data.msg);
-          if (data.data.code == 400) {
-            console.log("账号密码错误");
-          } else if (data.data.code == 200 && data.data.msg !== "验证码错误") {
-            console.log("登录成功");
-            this.open1();
-            window.sessionStorage.setItem("token", data.data.token);
-            this.$router.push("/home");
+      this.$refs.loginFormRef.validate(async valid => {
+        if (!valid) return
+        this.$http.post('/apis/users/login', this.loginForm).then(data => {
+          let res = data.data
+          if (res.code == 400) {
+          } else if (res.code == 200 && res.msg !== '验证码错误') {
+            this.$message.success(res.msg)
+            window.sessionStorage.setItem('token', res.token)
+            this.$router.push('/home')
           } else {
-            console.log("验证码错误");
-            this.open5();
+            this.$Message.error(res.msg)
           }
-        });
-      });
-    },
+        })
+      })
+    }
 
-    // 消息弹窗
-    open5() {
-      this.$message.error("验证码错误");
-    },
-    open4() {
-      this.$message.error("验证码发送失败，请检查用户名密码是否正确");
-    },
-    open2() {
-      this.$message.success("验证码发送发送成功，请查看手机");
-    },
-    open1() {
-      this.$message.success("登录成功");
-    },
     //发送验证码倒计时
     // setTime(obj, timeL) {
     //   let countdown = 60;
@@ -181,8 +170,8 @@ export default {
     //     countdown--;
     //   }
     // },
-  },
-};
+  }
+}
 </script>
 
 <style lang="less" scoped>

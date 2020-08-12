@@ -10,6 +10,11 @@ Vue.config.productionTip = false
 
 //把axios挂载到vue原型上
 Vue.prototype.$http = axios
+axios.interceptors.request.use(config => {
+  console.log(config)
+  config.headers.Authorization = window.sessionStorage.getItem('token')
+  return config
+})
 
 new Vue({
   router,
