@@ -36,7 +36,7 @@
           <el-button
             type="primary"
             @click="getCode"
-            :disabled="getCodeBtn.disabled"
+            :disabled="getCodeBtn.disable"
           >{{ getCodeBtn.text }}</el-button>
         </el-form-item>
 
