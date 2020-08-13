@@ -32,8 +32,10 @@
           unique-opened
           :collapse="isCollapse"
           :collapse-transition="false"
+          :router="true"
+          :default-active="activePath"
         >
-          <el-submenu :index="item.menu_id+''" v-for="item in menulist" :key="item.menu_id">
+          <el-submenu :index="'/'+item.menu_url" v-for="item in menulist" :key="item.menu_id">
             <!-- 一级菜单 -->
             <template slot="title">
               <i class="el-icon-location"></i>
@@ -42,9 +44,10 @@
 
             <!-- 二级菜单 -->
             <el-menu-item
-              :index="sunItem.menu_id+''"
+              :index="'/'+sunItem.menu_url"
               v-for="sunItem in item.children"
               :key="sunItem.menu_id"
+              @click="saveNavState('/'+sunItem.menu_url)"
             >
               <i class="el-icon-menu"></i>
               <span>{{sunItem.menu_name}}</span>
@@ -54,7 +57,10 @@
       </el-aside>
 
       <!-- 右侧内容区域 -->
-      <el-main>Main</el-main>
+      <el-main>
+        <!-- 路由占位符 -->
+        <router-view></router-view>
+      </el-main>
     </el-container>
   </el-container>
 </template>
@@ -66,10 +72,13 @@ export default {
     return {
       menulist: [],
       isCollapse: false,
+      //被激活的链接地址
+      activePath: '',
     }
   },
   created() {
     this.getMenuList()
+    this.activePath = window.sessionStorage.getItem('activePath')
   },
   methods: {
     dropOut() {
@@ -87,6 +96,11 @@ export default {
 
     toggleCollapse() {
       this.isCollapse = !this.isCollapse
+    },
+    //保存连接的激活状态
+    saveNavState(activePath) {
+      window.sessionStorage.setItem('activePath', activePath)
+      this.activePath = activePath
     },
   },
 }
