@@ -12,11 +12,7 @@
         class="login_form"
       >
         <el-form-item prop="username">
-          <el-input
-            v-model="loginForm.username"
-            prefix-icon="el-icon-search"
-            placeholder="请输入工号"
-          ></el-input>
+          <el-input v-model="loginForm.username" prefix-icon="el-icon-search" placeholder="请输入工号"></el-input>
         </el-form-item>
 
         <el-form-item prop="password">
@@ -41,14 +37,11 @@
             type="primary"
             @click="getCode"
             :disabled="getCodeBtn.disabled"
-            >{{ getCodeBtn.text }}</el-button
-          >
+          >{{ getCodeBtn.text }}</el-button>
         </el-form-item>
 
         <el-form-item class="btns">
-          <el-button type="primary" @click="login" :disabled="loginBtn.disable"
-            >登录</el-button
-          >
+          <el-button type="primary" @click="login" :disabled="loginBtn.disable">登录</el-button>
           <el-button type="info" @click="resetLogin">重置</el-button>
         </el-form-item>
       </el-form>
@@ -62,21 +55,22 @@ export default {
   data() {
     return {
       testCode: {
-        disable: true
+        disable: true,
       },
       loginBtn: {
-        disable: true
+        disable: true,
       },
-      timer: '',
       //表单对象
       getCodeBtn: {
+        count: 59,
         text: '点击获取验证码',
-        disabled: false
+        disable: false,
+        timer: null,
       },
       loginForm: {
         username: '',
         password: '',
-        testcode: ''
+        testcode: '',
       },
       LoginFormRules: {
         username: [
@@ -85,8 +79,8 @@ export default {
             min: 3,
             max: 10,
             message: '长度在 3 到 10 个字符',
-            trigger: 'blur'
-          }
+            trigger: 'blur',
+          },
         ],
         password: [
           { required: true, message: '请输入密码', trigger: 'blur' },
@@ -94,8 +88,8 @@ export default {
             min: 6,
             max: 15,
             message: '长度在 6 到 15 个字符',
-            trigger: 'blur'
-          }
+            trigger: 'blur',
+          },
         ],
         tetscode: [
           { required: true, message: '请输入验证码', trigger: 'blur' },
@@ -103,10 +97,10 @@ export default {
             min: 4,
             max: 4,
             message: '4位数字验证码',
-            trigger: 'blur'
-          }
-        ]
-      }
+            trigger: 'blur',
+          },
+        ],
+      },
     }
   },
   methods: {
@@ -117,20 +111,37 @@ export default {
     },
     //获取验证码
     getCode() {
-      this.$refs.loginFormRef.validateField(['username'], async valid => {
+      this.$refs.loginFormRef.validateField(['username'], async (valid) => {
         if (valid) return
         this.$http
           .post('/apis/users/loginGetCode', {
             username: this.loginForm.username,
-            password: this.loginForm.password
+            password: this.loginForm.password,
           })
-          .then(data => {
+          .then((data) => {
             let res = data.data
             if (res.code == 400) {
               this.$message.error(res.msg)
             } else {
-              this.$message.success(res.msg)
               this.testCode.disable = false
+              let me = this.getCodeBtn
+              me.timer = setInterval(() => {
+                console.log('1')
+                if (me.count > 0) {
+                  console.log('2')
+                  me.disable = true
+                  me.text = '(' + me.count + 's)后重新发送'
+                  me.count--
+                } else {
+                  console.log('3')
+                  me.disable = false
+                  me.text = '点击获取验证码'
+                  me.count = 60
+                  clearInterval(me.timer) // 清除定时器
+                  me.timer = null
+                }
+              }, 1000)
+              this.$message.success(res.msg)
               this.loginBtn.disable = false
               console.log(data)
             }
@@ -140,9 +151,9 @@ export default {
 
     //账号密码携带验证码登录
     login() {
-      this.$refs.loginFormRef.validate(async valid => {
+      this.$refs.loginFormRef.validate(async (valid) => {
         if (!valid) return
-        this.$http.post('/apis/users/login', this.loginForm).then(data => {
+        this.$http.post('/apis/users/login', this.loginForm).then((data) => {
           let res = data.data
           if (res.code == 400) {
           } else if (res.code == 200 && res.msg !== '验证码错误') {
@@ -154,7 +165,7 @@ export default {
           }
         })
       })
-    }
+    },
 
     //发送验证码倒计时
     // setTime(obj, timeL) {
@@ -170,7 +181,7 @@ export default {
     //     countdown--;
     //   }
     // },
-  }
+  },
 }
 </script>
 

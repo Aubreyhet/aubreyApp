@@ -7,6 +7,8 @@ import Login from '../components/Login.vue'
 
 import Home from '../components/Home.vue'
 
+import Dome from '../components/dome.vue'
+
 Vue.use(VueRouter)
 
 const router = new VueRouter({
@@ -19,6 +21,9 @@ const router = new VueRouter({
     },
     {
       path: '/home', component: Home
+    },
+    {
+      path: '/dome', component: Dome
     }
 
   ]
