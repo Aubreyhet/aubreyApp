@@ -8,14 +8,14 @@
         ref="loginFormRef"
         :rules="LoginFormRules"
         :model="loginForm"
-        label-width="0px"
+        label-width="80px"
         class="login_form"
       >
-        <el-form-item prop="username">
+        <el-form-item label="账号" prop="username">
           <el-input v-model="loginForm.username" prefix-icon="el-icon-search" placeholder="请输入工号"></el-input>
         </el-form-item>
 
-        <el-form-item prop="password">
+        <el-form-item label="密码" prop="password">
           <el-input
             type="password"
             v-model="loginForm.password"
@@ -25,13 +25,12 @@
           ></el-input>
         </el-form-item>
 
-        <el-form-item>
+        <el-form-item label="验证码" prop="tetscode">
           <el-input
-            style="width:50%;margin-right:50px"
+            style="width:30%;margin-right:20px"
             v-model="loginForm.testcode"
             placeholder="请输入验证码"
             :disabled="testCode.disable"
-            prop="tetscode"
           ></el-input>
           <el-button
             type="primary"
@@ -92,13 +91,13 @@ export default {
           },
         ],
         tetscode: [
-          { required: true, message: '请输入验证码', trigger: 'blur' },
-          {
-            min: 4,
-            max: 4,
-            message: '4位数字验证码',
-            trigger: 'blur',
-          },
+          // { required: true, message: '请输入验证码', trigger: 'blur' },
+          // {
+          //   min: 4,
+          //   max: 4,
+          //   message: '4位数字验证码',
+          //   trigger: 'blur',
+          // },
         ],
       },
     }
@@ -153,17 +152,19 @@ export default {
     login() {
       this.$refs.loginFormRef.validate(async (valid) => {
         if (!valid) return
-        this.$http.post('/apis/users/login', this.loginForm).then((data) => {
-          let res = data.data
-          if (res.code == 400) {
-          } else if (res.code == 200 && res.msg !== '验证码错误') {
-            this.$message.success(res.msg)
-            window.sessionStorage.setItem('token', res.token)
-            this.$router.push('/home')
-          } else {
-            this.$Message.error(res.msg)
-          }
-        })
+        await this.$http
+          .post('/apis/users/login', this.loginForm)
+          .then((data) => {
+            let res = data.data
+            if (res.code == 400) {
+            } else if (res.code == 200 && res.msg !== '验证码错误') {
+              this.$message.success(res.msg)
+              window.sessionStorage.setItem('token', res.token)
+              this.$router.push('/home')
+            } else {
+              this.$message.error(res.msg)
+            }
+          })
       })
     },
 
@@ -191,7 +192,7 @@ export default {
   background-color: #2b4b6b;
 }
 .login_box {
-  width: 450px;
+  width: 40%;
   height: 350px;
   background-color: #fff;
   border-radius: 3px;
