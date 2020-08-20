@@ -15,9 +15,9 @@
             v-model="queryInfo.query"
             class="input-with-select"
             clearable
-            @clear="getUesrInfolist"
+            @clear="pagination"
           >
-            <el-button slot="append" icon="el-icon-search" @click="getUesrInfolist"></el-button>
+            <el-button slot="append" icon="el-icon-search" @click="inquiry"></el-button>
           </el-input>
         </el-col>
         <el-col :span="4">
@@ -43,12 +43,17 @@
           </template>
         </el-table-column>
         <el-table-column label="Operate">
-          <template>
-            <el-button type="primary" icon="el-icon-edit" circle></el-button>
+          <template slot-scope="scope">
+            <el-button
+              type="primary"
+              icon="el-icon-edit"
+              circle
+              @click="modifyDialog(scope.row.id)"
+            ></el-button>
             <el-tooltip effect="dark" content="修改权限" placement="top" :enterable="false">
               <el-button type="warning" icon="el-icon-setting" circle></el-button>
             </el-tooltip>
-            <el-button type="danger" icon="el-icon-delete" circle></el-button>
+            <el-button type="danger" icon="el-icon-delete" circle @click="deleteuser(scope.row.id)"></el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -56,7 +61,7 @@
         @size-change="handleSizeChange"
         @current-change="handleCurrentChange"
         :current-page="queryInfo.pagenum"
-        :page-sizes="[1, 2, 5, 10]"
+        :page-sizes="[2, 5, 10, 50]"
         :page-size="queryInfo.pagesize"
         layout="total, sizes, prev, pager, next, jumper"
         :total="total"
@@ -98,6 +103,46 @@
         <el-button type="primary" @click="addUser">确 定</el-button>
         <el-button @click="addDialogVisible = false">取 消</el-button>
         <el-button type="info" @click="resetAdd">重置</el-button>
+      </span>
+    </el-dialog>
+
+    <!-- //修改用户信息对话框 -->
+    <el-dialog title="修改用户信息" :visible.sync="modifyDialogVisible" width="50%">
+      <!-- 修改用户信息表单 -->
+      <el-form
+        ref="modifyFormRef"
+        :rules="addFormRules"
+        :model="modifyForm"
+        label-width="70px"
+        class="login_form"
+      >
+        <el-form-item label="姓名" prop="username">
+          <el-input
+            prefix-icon="el-icon-search"
+            :placeholder="modifyForm.username"
+            :disabled="true"
+          ></el-input>
+        </el-form-item>
+
+        <el-form-item label="邮箱" prop="email">
+          <el-input
+            v-model="modifyForm.email"
+            :placeholder="modifyForm.email"
+            prefix-icon="el-icon-search"
+          ></el-input>
+        </el-form-item>
+
+        <el-form-item label="电话" prop="phone">
+          <el-input
+            v-model="modifyForm.phone"
+            :placeholder="modifyForm.phone"
+            prefix-icon="el-icon-search"
+          ></el-input>
+        </el-form-item>
+      </el-form>
+      <span slot="footer" class="dialog-footer">
+        <el-button type="primary" @click="modifyUser">确 定</el-button>
+        <el-button @click="modifyDialogVisible = false">取 消</el-button>
       </span>
     </el-dialog>
   </div>
@@ -169,17 +214,53 @@ export default {
           { validator: checkPhone, trigger: 'blur' },
         ],
       },
+      modifyDialogVisible: false,
+      modifyForm: {
+        user_id: '',
+        username: '',
+        email: '',
+        phone: '',
+      },
     }
   },
+
   created() {
     this.getUesrInfolist()
+  },
+  beforeMount() {
+    this.pagination()
   },
   methods: {
     resetAdd() {
       this.$refs.addFormRef.resetFields()
     },
     async getUesrInfolist() {
-      const { data: res } = await this.$http.get('apis/users/getUserInfoList', {
+      const { data: res } = await this.$http.get('apis/users/getUserInfoList')
+      if (res.code !== 200) {
+        return this.$message.error(res.msg)
+      }
+      this.$message.success(res.msg)
+      console.log(res.total)
+      this.userlist = res.data
+      this.total = res.total
+    },
+
+    // 分页数据获取
+    async pagination() {
+      const { data: res } = await this.$http.get('apis/users/pagination', {
+        params: this.queryInfo,
+      })
+      if (res.code !== 200) {
+        return this.$message.error(res.msg)
+      }
+      this.$message.success(res.msg)
+      console.log(res.data)
+      this.userlist = res.data
+    },
+
+    // 搜索数据获取
+    async inquiry() {
+      const { data: res } = await this.$http.get('apis/users/inquiry', {
         params: this.queryInfo,
       })
       if (res.code !== 200) {
@@ -190,15 +271,14 @@ export default {
       this.userlist = res.data
       this.total = res.total
     },
-    //
 
     handleSizeChange(newsize) {
       this.queryInfo.pagesize = newsize
-      this.getUesrInfolist()
+      this.pagination()
     },
     handleCurrentChange(newpage) {
       this.queryInfo.pagenum = newpage
-      this.getUesrInfolist()
+      this.pagination()
     },
     async userStateChange(userinfo) {
       let newobj = this.Transformation(userinfo)
@@ -209,7 +289,7 @@ export default {
         userinfo.status = !userinfo.status
         return this.$message.error(res.msg)
       }
-      this.getUesrInfolist()
+      this.pagination()
       this.$message.success(res.msg)
     },
 
@@ -224,14 +304,74 @@ export default {
           .post('apis/users/adduserinfo', this.addForm)
           .then((data) => {
             if (data.data.code !== 201) {
-              this.$Message.error(data.data.msg)
+              this.$message.error(data.data.msg)
             }
             this.$message.success(data.data.msg)
             this.getUesrInfolist()
+            this.pagination()
             this.addDialogVisible = false
           })
       })
     },
+    // 点击修改按钮获取用户信息处理函数
+    async modifyDialog(id) {
+      this.modifyDialogVisible = true
+      const { data: res } = await this.$http.get(`apis/users/modifyUser/${id}`)
+      if (res.code !== 200) {
+        return this.$message.error(res.msg)
+      } else {
+        let data = res.data[0]
+        this.$message.success(res.msg)
+        this.modifyForm.user_id = id
+        this.modifyForm.username = data.username
+        this.modifyForm.email = data.email
+        this.modifyForm.phone = data.phone
+        console.log(this.modifyForm)
+      }
+    },
+
+    //点击修改确定按钮提交用户信息处理函数
+    modifyUser() {
+      console.log(this.modifyForm)
+      this.$refs.modifyFormRef.validate(async (valid) => {
+        if (!valid) return
+        await this.$http
+          .post(`apis/users/modifyUsered`, this.modifyForm)
+          .then((data) => {
+            if (data.data.code !== 200) {
+              this.$message.error(data.data.msg)
+            }
+            this.$message.success(data.data.msg)
+            this.pagination()
+            this.modifyDialogVisible = false
+          })
+      })
+    },
+
+    async deleteuser(id) {
+      const daleteuserRes = await this.$confirm(
+        '此操作将永久删除该用户, 是否继续?',
+        '提示',
+        {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning',
+        }
+      ).catch((err) => err)
+      if (daleteuserRes !== 'confirm') {
+        return this.$message.info('已取消删除')
+      }
+      const { data: res } = await this.$http.delete(
+        'apis/users/deleteuser/' + id
+      )
+      if (res.code !== 200) {
+        this.$message.error(res.msg)
+      }
+      this.$message.success(res.msg)
+      this.getUesrInfolist()
+      this.pagination()
+    },
+
     Transformation(obj) {
       if (obj.status !== true) {
         obj.status = 0
