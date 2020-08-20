@@ -11,8 +11,8 @@
         label-width="80px"
         class="login_form"
       >
-        <el-form-item label="账号" prop="username">
-          <el-input v-model="loginForm.username" prefix-icon="el-icon-search" placeholder="请输入工号"></el-input>
+        <el-form-item label="账号" prop="j_number">
+          <el-input v-model="loginForm.j_number" prefix-icon="el-icon-search" placeholder="请输入工号"></el-input>
         </el-form-item>
 
         <el-form-item label="密码" prop="password">
@@ -67,17 +67,17 @@ export default {
         timer: null,
       },
       loginForm: {
-        username: '',
+        j_number: '',
         password: '',
         testcode: '',
       },
       LoginFormRules: {
-        username: [
-          { required: true, message: '请输入用户名', trigger: 'blur' },
+        j_number: [
+          { required: true, message: '请输入工号', trigger: 'blur' },
           {
-            min: 3,
+            min: 5,
             max: 10,
-            message: '长度在 3 到 10 个字符',
+            message: '长度在5 到 10 个字符',
             trigger: 'blur',
           },
         ],
@@ -110,11 +110,11 @@ export default {
     },
     //获取验证码
     getCode() {
-      this.$refs.loginFormRef.validateField(['username'], async (valid) => {
+      this.$refs.loginFormRef.validateField(['j_number'], async (valid) => {
         if (valid) return
         this.$http
           .post('/apis/users/loginGetCode', {
-            username: this.loginForm.username,
+            j_number: this.loginForm.j_number,
             password: this.loginForm.password,
           })
           .then((data) => {

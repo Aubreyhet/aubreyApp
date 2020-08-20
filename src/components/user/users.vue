@@ -28,12 +28,12 @@
       <!-- 用户列表区 -->
       <el-table :data="userlist" border stripe>
         <el-table-column type="index"></el-table-column>
-        <el-table-column label="Name" prop="username"></el-table-column>
+        <el-table-column label="Name" prop="name"></el-table-column>
         <el-table-column label="Phone" prop="phone"></el-table-column>
         <el-table-column label="Email" prop="email"></el-table-column>
-        <el-table-column label="Character" prop="character"></el-table-column>
-        <el-table-column label="JoinTime" prop="create_time"></el-table-column>
-        <el-table-column label="Status">
+        <el-table-column label="Character" prop="roles"></el-table-column>
+        <el-table-column label="JoinTime" prop="join"></el-table-column>
+        <!-- <el-table-column label="Status">
           <template slot-scope="scope">
             <el-switch
               v-model="scope.row.status"
@@ -41,19 +41,26 @@
               @change="userStateChange(scope.row)"
             ></el-switch>
           </template>
-        </el-table-column>
+        </el-table-column>-->
         <el-table-column label="Operate">
           <template slot-scope="scope">
             <el-button
               type="primary"
               icon="el-icon-edit"
               circle
-              @click="modifyDialog(scope.row.id)"
+              @click="modifyDialog(scope.row.user_id)"
             ></el-button>
+
             <el-tooltip effect="dark" content="修改权限" placement="top" :enterable="false">
               <el-button type="warning" icon="el-icon-setting" circle></el-button>
             </el-tooltip>
-            <el-button type="danger" icon="el-icon-delete" circle @click="deleteuser(scope.row.id)"></el-button>
+
+            <el-button
+              type="danger"
+              icon="el-icon-delete"
+              circle
+              @click="deleteuser(scope.row.user_id)"
+            ></el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -77,8 +84,8 @@
         label-width="70px"
         class="login_form"
       >
-        <el-form-item label="姓名" prop="username">
-          <el-input v-model="addForm.username" prefix-icon="el-icon-search" placeholder="请输入姓名"></el-input>
+        <el-form-item label="姓名" prop="name">
+          <el-input v-model="addForm.name" prefix-icon="el-icon-search" placeholder="请输入姓名"></el-input>
         </el-form-item>
 
         <el-form-item label="密码" prop="password">
@@ -116,12 +123,8 @@
         label-width="70px"
         class="login_form"
       >
-        <el-form-item label="姓名" prop="username">
-          <el-input
-            prefix-icon="el-icon-search"
-            :placeholder="modifyForm.username"
-            :disabled="true"
-          ></el-input>
+        <el-form-item label="姓名">
+          <el-input prefix-icon="el-icon-search" :placeholder="modifyForm.name" :disabled="true"></el-input>
         </el-form-item>
 
         <el-form-item label="邮箱" prop="email">
@@ -180,14 +183,14 @@ export default {
       addDialogVisible: false,
       //添加用户的表单数据
       addForm: {
-        username: '',
+        name: '',
         password: '',
         email: '',
         phone: '',
       },
       //添加用户表单规则
       addFormRules: {
-        username: [
+        name: [
           { required: true, message: '请输入用户名', trigger: 'blur' },
           {
             min: 3,
@@ -216,8 +219,8 @@ export default {
       },
       modifyDialogVisible: false,
       modifyForm: {
-        user_id: '',
-        username: '',
+        id: '',
+        name: '',
         email: '',
         phone: '',
       },
@@ -281,6 +284,7 @@ export default {
       this.pagination()
     },
     async userStateChange(userinfo) {
+      console.log(userinfo)
       let newobj = this.Transformation(userinfo)
       const { data: res } = await this.$http.put(
         `apis/users/${newobj.id}/status/${newobj.status}`
@@ -315,15 +319,17 @@ export default {
     },
     // 点击修改按钮获取用户信息处理函数
     async modifyDialog(id) {
+      console.log(id)
       this.modifyDialogVisible = true
       const { data: res } = await this.$http.get(`apis/users/modifyUser/${id}`)
       if (res.code !== 200) {
         return this.$message.error(res.msg)
       } else {
         let data = res.data[0]
+        console.log(data)
         this.$message.success(res.msg)
-        this.modifyForm.user_id = id
-        this.modifyForm.username = data.username
+        this.modifyForm.id = id
+        this.modifyForm.name = data.name
         this.modifyForm.email = data.email
         this.modifyForm.phone = data.phone
         console.log(this.modifyForm)
