@@ -75,9 +75,9 @@ export default {
         j_number: [
           { required: true, message: '请输入工号', trigger: 'blur' },
           {
-            min: 5,
+            min: 2,
             max: 10,
-            message: '长度在5 到 10 个字符',
+            message: '长度在2 到 10 个字符',
             trigger: 'blur',
           },
         ],
