@@ -165,7 +165,7 @@ export default {
     }
     //验证手机号的校验规则
     var checkPhone = (rele, value, callback) => {
-      const regPhone = /^(0|86|17951)?(13[0-9]|15[01235689]|17[678]|18[0-9]14[57])[0-9]{8}$/
+      const regPhone = /^(0|86|17951)?(13[0-9]|15[01235689]|17[678]|18[0-9]|14[57])[0-9]{8}$/
       if (regPhone.test(value)) {
         return callback()
       }
