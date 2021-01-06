@@ -113,6 +113,7 @@ export default {
       this.$refs.loginFormRef.validateField(['j_number'], async (valid) => {
         if (valid) return
         this.$http
+        // 两个接口  后台生成验证码 和阿里大鱼向手机号发送验证码
           .post('/apis/users/loginGetCode', {
             j_number: this.loginForm.j_number,
             password: this.loginForm.password,
@@ -167,21 +168,6 @@ export default {
           })
       })
     },
-
-    //发送验证码倒计时
-    // setTime(obj, timeL) {
-    //   let countdown = 60;
-    //   if (countdown == 0) {
-    //     obj.disabled = false;
-    //     obj.text = "点击获取验证码";
-    //     countdown = 60; //60秒过后button上的文字初始化,计时器初始化;
-    //     return;
-    //   } else {
-    //     obj.disabled = true;
-    //     obj.text = "(" + countdown + "s)后重新发送";
-    //     countdown--;
-    //   }
-    // },
   },
 }
 </script>
