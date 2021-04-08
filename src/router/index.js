@@ -18,7 +18,8 @@ import Roles from '../components/power/Roles.vue'
 Vue.use(VueRouter)
 
 const router = new VueRouter({
-  routes: [{
+  routes: [
+    {
     path: '/',
     redirect: '/login'
   },
